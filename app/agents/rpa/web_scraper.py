@@ -45,6 +45,12 @@ from tenacity import retry, stop_after_attempt, wait_exponential
 from loguru import logger
 import os
 
+# Dashboard Integration
+try:
+    from app.dashboard import dashboard
+except ImportError:
+    dashboard = None
+
 # Configure logger
 logger.add("logs/rpa_web_scraper_{time}.log", rotation="500 MB", retention="10 days", level="INFO")
 
@@ -180,13 +186,31 @@ class WebScraperAgent:
         return self.results
     
     async def _worker(self, name: str):
-        """Worker that processes tasks from queue"""
+        """
+        Worker assíncrono que processa tarefas da fila.
+        
+        Consome tarefas de `self.task_queue`, gerencia contagem de instâncias ativas
+        e reporta o progresso ao logger e ao dashboard em tempo real.
+        
+        Args:
+            name (str): Identificador único do worker (ex: Worker-1).
+        """
         logger.info(f"🔧 {name} started")
         
         while True:
             try:
                 task = await self.task_queue.get()
                 self.active_instances += 1
+                
+                # Notificar dashboard sobre nova tarefa
+                if dashboard:
+                    await dashboard.add_task_event({
+                        "type": "task_started",
+                        "url": task.url,
+                        "worker": name,
+                        "status": "pending"
+                    })
+                    await dashboard.update_worker_count(self.active_instances)
                 
                 logger.info(f"⚙️ {name} processing: {task.url}")
                 
@@ -195,6 +219,16 @@ class WebScraperAgent:
                     self.results.append(result)
                     self.completed_tasks += 1
                     logger.success(f"✅ {name} completed: {task.url}")
+                    
+                    # Notificar sucesso no dashboard
+                    if dashboard:
+                        await dashboard.add_task_event({
+                            "type": "task_completed",
+                            "url": task.url,
+                            "worker": name,
+                            "status": "success",
+                            "execution_time": result.execution_time
+                        })
                 except Exception as e:
                     logger.error(f"❌ {name} failed: {task.url} - {str(e)}")
                     self.failed_tasks += 1
@@ -206,9 +240,21 @@ class WebScraperAgent:
                         status="failed",
                         error=str(e)
                     ))
+                    
+                    # Notificar falha no dashboard
+                    if dashboard:
+                        await dashboard.add_task_event({
+                            "type": "task_failed",
+                            "url": task.url,
+                            "worker": name,
+                            "status": "failed",
+                            "error": str(e)
+                        })
                 finally:
                     self.active_instances -= 1
                     self.task_queue.task_done()
+                    if dashboard:
+                        await dashboard.update_worker_count(self.active_instances)
                     
             except asyncio.CancelledError:
                 break
