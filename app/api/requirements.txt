@@ -1,0 +1,43 @@
+fastapi
+uvicorn
+pydantic
+python-multipart
+sqlalchemy
+psycopg2-binary
+httpx
+python-dotenv
+# AI/LLM
+openai
+anthropic
+google-generativeai
+langchain
+langchain-community
+langchain-openai
+markitdown
+sentence-transformers
+# Data Science
+pandas
+numpy
+openpyxl
+matplotlib
+seaborn
+# Computer Vision
+opencv-python-headless
+pillow
+# Document Processing
+beautifulsoup4
+pdfminer.six
+python-docx
+markdownify
+# Vector DB
+qdrant-client
+# RPA & Automation
+playwright
+selenium
+webdriver-manager
+pyautogui
+requests
+# Utils
+loguru
+tenacity
+scikit-learn

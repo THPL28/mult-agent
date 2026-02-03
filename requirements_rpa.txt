@@ -1,0 +1,57 @@
+# RPA Web Scraper Agent - Dependencies
+# =====================================================
+
+# Core async framework
+asyncio-compat>=0.1.0
+
+# Web Automation Engines
+playwright>=1.40.0
+selenium>=4.16.0
+webdriver-manager>=4.0.1
+
+# HTTP Requests
+requests>=2.31.0
+httpx>=0.25.0
+urllib3>=2.1.0
+
+# HTML Parsing
+beautifulsoup4>=4.12.0
+lxml>=4.9.0
+html5lib>=1.1
+
+# Data Processing
+pandas>=2.1.0
+numpy>=1.26.0
+openpyxl>=3.1.0
+
+# Retry & Resilience
+tenacity>=8.2.0
+backoff>=2.2.0
+
+# Logging
+loguru>=0.7.0
+colorlog>=6.8.0
+
+# Utils
+python-dotenv>=1.0.0
+pydantic>=2.5.0
+dataclasses-json>=0.6.0
+
+# Optional: Browser automation helpers
+pyppeteer>=1.0.2
+browsermob-proxy>=0.8.0
+
+# Optional: Anti-detection
+undetected-chromedriver>=3.5.0
+fake-useragent>=1.4.0
+
+# Optional: Data extraction
+markdownify>=0.11.0
+trafilatura>=1.6.0
+
+# Optional: Image processing
+pillow>=10.1.0
+
+# Optional: Database (for storing results)
+sqlalchemy>=2.0.0
+alembic>=1.13.0

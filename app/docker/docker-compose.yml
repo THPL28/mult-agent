@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  # --- Core API ---
+  api:
+    build: ../api
+    container_name: multiagent_api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../api:/app
+    environment:
+      - DATABASE_URL=postgresql://user:password@postgres:5432/multiagent
+      - QDRANT_URL=http://qdrant:6333
+      - RABBITMQ_URL=amqp://user:password@rabbitmq:5672/
+    depends_on:
+      - postgres
+      - qdrant
+      - rabbitmq
+    networks:
+      - multiagent_net
+
+  # --- Dashboard (Frontend) ---
+  dashboard:
+    build: ../dashboard
+    container_name: multiagent_dashboard
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../dashboard:/app
+      - /app/node_modules
+    networks:
+      - multiagent_net
+
+  # --- Infrastructure ---
+  postgres:
+    image: postgres:15-alpine
+    container_name: multiagent_postgres
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: multiagent
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - multiagent_net
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: multiagent_vector_db
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    networks:
+      - multiagent_net
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: multiagent_rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: password
+    networks:
+      - multiagent_net
+
+networks:
+  multiagent_net:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  qdrant_data:
