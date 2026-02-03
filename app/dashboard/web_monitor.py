@@ -191,359 +191,469 @@ async def get_dashboard():
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🤖 RPA Agent Dashboard</title>
+    <title>🤖 MultiAgent Dashboard | RPA Monitoring</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
+        :root {
+            --bg-color: #0d1117;
+            --card-bg: rgba(22, 27, 34, 0.8);
+            --neon-blue: #00d2ff;
+            --neon-green: #39ff14;
+            --neon-red: #ff3131;
+            --neon-purple: #bc13fe;
+            --text-color: #e6edf3;
+            --border-color: rgba(48, 54, 61, 0.8);
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
-        
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #fff;
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(0, 210, 255, 0.05) 0%, transparent 50%),
+                url("https://www.transparenttextures.com/patterns/carbon-fibre.png");
+            color: var(--text-color);
             min-height: 100vh;
-            padding: 20px;
+            overflow-x: hidden;
+            padding: 10px 20px;
         }
-        
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
+
+        /* Fundo de Circuito */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: url('https://img.freepik.com/free-vector/digital-technology-circuit-board-background_23-2148404245.jpg?w=1380') center/cover no-repeat;
+            opacity: 0.03;
+            pointer-events: none;
+            z-index: -1;
         }
-        
+
         header {
-            text-align: center;
-            margin-bottom: 30px;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            border-radius: 15px;
-            backdrop-filter: blur(10px);
-        }
-        
-        h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
-        
-        .status-badge {
-            display: inline-block;
-            padding: 5px 15px;
-            background: #10b981;
-            border-radius: 20px;
-            font-size: 0.9em;
-        }
-        
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        
-        .metric-card {
-            background: rgba(255, 255, 255, 0.15);
-            padding: 25px;
-            border-radius: 15px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: transform 0.3s ease;
-        }
-        
-        .metric-card:hover {
-            transform: translateY(-5px);
-        }
-        
-        .metric-label {
-            font-size: 0.9em;
-            opacity: 0.8;
-            margin-bottom: 10px;
-        }
-        
-        .metric-value {
-            font-size: 2.5em;
-            font-weight: bold;
-        }
-        
-        .agents-section {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 25px;
-            border-radius: 15px;
-            backdrop-filter: blur(10px);
-            margin-bottom: 30px;
-        }
-        
-        .section-title {
-            font-size: 1.5em;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.3);
-        }
-        
-        .agent-item {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 10px 0 20px 0;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
         }
-        
-        .agent-name {
-            font-weight: bold;
-            font-size: 1.1em;
+
+        .status-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
         }
-        
-        .agent-status {
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 0.9em;
-        }
-        
-        .status-running {
-            background: #10b981;
-        }
-        
-        .status-idle {
-            background: #6b7280;
-        }
-        
-        .status-error {
-            background: #ef4444;
-        }
-        
-        .tasks-section {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 25px;
-            border-radius: 15px;
-            backdrop-filter: blur(10px);
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        
-        .task-item {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            border-left: 4px solid #10b981;
-        }
-        
-        .task-item.failed {
-            border-left-color: #ef4444;
-        }
-        
-        .task-url {
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-        
-        .task-time {
-            font-size: 0.85em;
-            opacity: 0.7;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        
-        .loading {
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background-color: var(--neon-green);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--neon-green);
             animation: pulse 2s infinite;
         }
-        
-        .chart-container {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 25px;
-            border-radius: 15px;
+
+        .user-profile {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #30363d;
+            border: 1px solid var(--neon-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Main Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            grid-template-rows: auto 1fr;
+            gap: 20px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* Stat Cards */
+        .stats-row {
+            grid-column: 1 / span 2;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .stat-card::after {
+            content: "";
+            position: absolute;
+            bottom: 0; left: 0; width: 100%; height: 2px;
+        }
+
+        .stat-card.blue::after { background: var(--neon-blue); box-shadow: 0 0 15px var(--neon-blue); }
+        .stat-card.green::after { background: var(--neon-green); box-shadow: 0 0 15px var(--neon-green); }
+        .stat-card.red::after { background: var(--neon-red); box-shadow: 0 0 15px var(--neon-red); }
+        .stat-card.purple::after { background: var(--neon-purple); box-shadow: 0 0 15px var(--neon-purple); }
+
+        .icon-box {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+        }
+
+        .blue .icon-box { border-color: var(--neon-blue); color: var(--neon-blue); }
+        .green .icon-box { border-color: var(--neon-green); color: var(--neon-green); }
+        .red .icon-box { border-color: var(--neon-red); color: var(--neon-red); }
+        .purple .icon-box { border-color: var(--neon-purple); color: var(--neon-purple); }
+
+        .stat-info { display: flex; flex-direction: column; flex-grow: 1; text-align: right; }
+        .stat-label { font-size: 12px; opacity: 0.7; display: flex; align-items: center; justify-content: flex-end; gap: 5px; }
+        .stat-value { font-size: 32px; font-weight: 700; margin-top: 5px; }
+
+        /* Left Side Charts */
+        .left-column { display: flex; flex-direction: column; gap: 20px; }
+
+        .content-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
             backdrop-filter: blur(10px);
-            margin-bottom: 30px;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .chart-container { height: 250px; position: relative; }
+        .placeholder-text {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0.5;
+            font-size: 14px;
+        }
+
+        /* Agents List */
+        .agents-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-height: 200px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(0, 210, 255, 0.1);
+            border-top-color: var(--neon-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        /* History Table */
+        .history-card { height: 100%; }
+        .table-header {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            padding: 10px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 13px;
+            opacity: 0.8;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 5px 5px 0 0;
+        }
+
+        .history-list {
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 600px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .history-list::-webkit-scrollbar { width: 4px; }
+        .history-list::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
+
+        .history-item {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            padding: 12px 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 6px;
+            font-size: 13px;
+            align-items: center;
+            transition: background 0.2s;
+        }
+
+        .history-item:hover { background: rgba(255, 255, 255, 0.06); }
+        .status-badge {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            text-align: center;
+            width: fit-content;
+        }
+
+        .status-success { background: rgba(57, 255, 20, 0.1); color: var(--neon-green); border: 1px solid var(--neon-green); }
+        .status-failed { background: rgba(255, 49, 49, 0.1); color: var(--neon-red); border: 1px solid var(--neon-red); }
+        .status-pending { background: rgba(0, 210, 255, 0.1); color: var(--neon-blue); border: 1px solid var(--neon-blue); }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 0%, 100% { opacity: 1; filter: brightness(1.2); } 50% { opacity: 0.6; filter: brightness(0.8); } }
+
+        @media (max-width: 1000px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>🤖 RPA Agent Dashboard</h1>
-            <p class="status-badge" id="connection-status">Conectando...</p>
-        </header>
-        
-        <div class="metrics-grid">
-            <div class="metric-card">
-                <div class="metric-label">Total de Tarefas</div>
-                <div class="metric-value" id="total-tasks">0</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-label">✅ Completadas</div>
-                <div class="metric-value" id="completed-tasks">0</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-label">❌ Falhadas</div>
-                <div class="metric-value" id="failed-tasks">0</div>
-            </div>
-            <div class="metric-card">
-                <div class="metric-label">⚙️ Workers Ativos</div>
-                <div class="metric-value" id="active-workers">0</div>
-            </div>
+    <header>
+        <div class="status-container">
+            <div class="status-dot"></div>
+            <span>Conectado</span>
         </div>
-        
-        <div class="chart-container">
-            <h2 class="section-title">📊 Performance em Tempo Real</h2>
-            <canvas id="performanceChart" width="400" height="100"></canvas>
+        <div class="user-profile">
+            <i data-lucide="user" style="width: 18px; color: var(--neon-blue)"></i>
         </div>
-        
-        <div class="agents-section">
-            <h2 class="section-title">🔧 Agentes Ativos</h2>
-            <div id="agents-list">
-                <div class="agent-item loading">
-                    <span class="agent-name">Carregando agentes...</span>
+    </header>
+
+    <div class="dashboard-grid">
+        <!-- Stat Cards -->
+        <div class="stats-row">
+            <div class="stat-card blue">
+                <div class="icon-box"><i data-lucide="layers"></i></div>
+                <div class="stat-info">
+                    <div class="stat-label"><i data-lucide="layers" style="width:12px"></i> Total de Tarefas</div>
+                    <div class="stat-value" id="total-tasks">0</div>
+                </div>
+            </div>
+            <div class="stat-card green">
+                <div class="icon-box"><i data-lucide="check-square"></i></div>
+                <div class="stat-info">
+                    <div class="stat-label"><i data-lucide="check-circle" style="width:12px"></i> Completadas</div>
+                    <div class="stat-value" id="completed-tasks">0</div>
+                </div>
+            </div>
+            <div class="stat-card red">
+                <div class="icon-box"><i data-lucide="x-circle"></i></div>
+                <div class="stat-info">
+                    <div class="stat-label"><i data-lucide="alert-circle" style="width:12px"></i> Falhadas</div>
+                    <div class="stat-value" id="failed-tasks">0</div>
+                </div>
+            </div>
+            <div class="stat-card purple">
+                <div class="icon-box"><i data-lucide="settings"></i></div>
+                <div class="stat-info">
+                    <div class="stat-label"><i data-lucide="cpu" style="width:12px"></i> Workers Ativos</div>
+                    <div class="stat-value" id="active-workers">0</div>
                 </div>
             </div>
         </div>
-        
-        <div class="tasks-section">
-            <h2 class="section-title">📋 Histórico de Tarefas (Tempo Real)</h2>
-            <div id="tasks-list">
-                <div class="task-item">
-                    <div class="task-url">Aguardando tarefas...</div>
-                    <div class="task-time">Sistema inicializado</div>
+
+        <!-- Left Column -->
+        <div class="left-column">
+            <div class="content-card">
+                <div class="card-header">
+                    <i data-lucide="bar-chart-2" style="color: var(--neon-blue)"></i>
+                    Performance em Tempo Real
+                </div>
+                <div class="chart-container">
+                    <canvas id="performanceChart"></canvas>
+                    <div id="chart-placeholder" class="placeholder-text">Aguardando dados...</div>
+                </div>
+            </div>
+
+            <div class="content-card">
+                <div class="card-header">
+                    <i data-lucide="wrench" style="color: var(--neon-blue)"></i>
+                    Agentes Ativos
+                </div>
+                <div class="agents-list" id="agents-info">
+                    <div class="spinner"></div>
+                    <p style="margin-top: 15px; opacity: 0.7; font-size: 14px;">Carregando lista de agentes...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column (History) -->
+        <div class="content-card history-card">
+            <div class="card-header">
+                <i data-lucide="clipboard-list" style="color: var(--neon-blue)"></i>
+                Histórico de Tarefas (Tempo Real)
+            </div>
+            <div class="table-header">
+                <span>Nome da Tarefa</span>
+                <span>Status</span>
+                <span>Timestamp</span>
+            </div>
+            <div class="history-list" id="tasks-history">
+                <div class="placeholder-text" style="display: block; position: relative; padding: 100px 0; text-align: center;">
+                    Aguardando tarefas...
                 </div>
             </div>
         </div>
     </div>
-    
+
     <script>
-        // WebSocket connection
-        const ws = new WebSocket(`ws://${window.location.host}/ws`);
-        const tasksData = [];
-        let performanceChart;
+        // Inicializar ícones Lucide
+        lucide.createIcons();
+
+        // WebSocket Connection
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const ws = new WebSocket(`${wsProtocol}//${window.location.host}/ws`);
         
-        // Initialize chart
+        let performanceChart;
+        const historyList = document.getElementById('tasks-history');
+
+        // Configuração do Gráfico
         const ctx = document.getElementById('performanceChart').getContext('2d');
         performanceChart = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: [],
                 datasets: [{
-                    label: 'Tarefas Completadas',
+                    label: 'Completas',
                     data: [],
-                    borderColor: '#10b981',
-                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                    tension: 0.4
+                    borderColor: '#39ff14',
+                    backgroundColor: 'rgba(57, 255, 20, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true
                 }, {
-                    label: 'Tarefas Falhadas',
+                    label: 'Falhas',
                     data: [],
-                    borderColor: '#ef4444',
-                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                    tension: 0.4
+                    borderColor: '#ff3131',
+                    backgroundColor: 'rgba(255, 49, 49, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        labels: {
-                            color: '#fff'
-                        }
-                    }
-                },
+                plugins: { legend: { display: false } },
                 scales: {
-                    y: {
+                    x: { display: false },
+                    y: { 
                         beginAtZero: true,
-                        ticks: {
-                            color: '#fff'
-                        },
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        }
-                    },
-                    x: {
-                        ticks: {
-                            color: '#fff'
-                        },
-                        grid: {
-                            color: 'rgba(255, 255, 255, 0.1)'
-                        }
+                        grid: { color: 'rgba(255,255,255,0.05)' },
+                        ticks: { color: 'rgba(255,255,255,0.5)' }
                     }
                 }
             }
         });
-        
-        ws.onopen = () => {
-            document.getElementById('connection-status').textContent = '🟢 Conectado';
-            document.getElementById('connection-status').style.background = '#10b981';
-        };
-        
-        ws.onclose = () => {
-            document.getElementById('connection-status').textContent = '🔴 Desconectado';
-            document.getElementById('connection-status').style.background = '#ef4444';
-        };
-        
+
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
             
-            if (data.type === 'initial_state' || data.type === 'metrics_update') {
-                updateMetrics(data.metrics);
-            }
-            
-            if (data.type === 'agent_update') {
-                updateAgents(data);
-            }
-            
-            if (data.type === 'task_event') {
-                addTaskToList(data.event);
-                updateMetrics(data.metrics);
-                updateChart(data.metrics);
+            if (data.type === 'initial_state' || data.type === 'metrics_update' || data.type === 'task_event') {
+                const metrics = data.metrics || (data.type === 'initial_state' ? data.metrics : null);
+                if (metrics) {
+                    updateCounter('total-tasks', metrics.total_tasks);
+                    updateCounter('completed-tasks', metrics.completed_tasks);
+                    updateCounter('failed-tasks', metrics.failed_tasks);
+                    updateCounter('active-workers', metrics.active_workers);
+                    
+                    if (data.type === 'task_event') {
+                        updateChart(metrics);
+                        addTaskToHistory(data.event);
+                    }
+                }
             }
         };
-        
-        function updateMetrics(metrics) {
-            document.getElementById('total-tasks').textContent = metrics.total_tasks;
-            document.getElementById('completed-tasks').textContent = metrics.completed_tasks;
-            document.getElementById('failed-tasks').textContent = metrics.failed_tasks;
-            document.getElementById('active-workers').textContent = metrics.active_workers;
+
+        function updateCounter(id, value) {
+            const el = document.getElementById(id);
+            if (el.textContent != value) {
+                el.textContent = value;
+                el.classList.add('pulse-text');
+                setTimeout(() => el.classList.remove('pulse-text'), 500);
+            }
         }
-        
+
         function updateChart(metrics) {
+            const placeholder = document.getElementById('chart-placeholder');
+            if (placeholder) placeholder.style.display = 'none';
+
             const now = new Date().toLocaleTimeString();
             performanceChart.data.labels.push(now);
             performanceChart.data.datasets[0].data.push(metrics.completed_tasks);
             performanceChart.data.datasets[1].data.push(metrics.failed_tasks);
             
-            if (performanceChart.data.labels.length > 20) {
+            if (performanceChart.data.labels.length > 30) {
                 performanceChart.data.labels.shift();
                 performanceChart.data.datasets[0].data.shift();
                 performanceChart.data.datasets[1].data.shift();
             }
-            
-            performanceChart.update();
+            performanceChart.update('none');
         }
-        
-        function updateAgents(data) {
-            // Implementar atualização de agentes
-        }
-        
-        function addTaskToList(event) {
-            const tasksList = document.getElementById('tasks-list');
-            const taskItem = document.createElement('div');
-            taskItem.className = `task-item ${event.status === 'failed' ? 'failed' : ''}`;
+
+        function addTaskToHistory(event) {
+            // Remover placeholder no primeiro evento
+            if (historyList.querySelector('.placeholder-text')) {
+                historyList.innerHTML = '';
+            }
+
+            const item = document.createElement('div');
+            item.className = 'history-item';
             
-            const icon = event.type === 'task_completed' ? '✅' : 
-                        event.type === 'task_failed' ? '❌' : '⏳';
+            const statusClass = event.status === 'success' ? 'status-success' : 
+                              event.status === 'failed' ? 'status-failed' : 'status-pending';
             
-            taskItem.innerHTML = `
-                <div class="task-url">${icon} ${event.url || 'Task'}</div>
-                <div class="task-time">${event.worker || 'Worker'} - ${new Date().toLocaleTimeString()}</div>
+            const taskName = event.url ? (new URL(event.url).hostname) : 'RPA Task';
+            const timestamp = new Date().toLocaleTimeString();
+
+            item.innerHTML = `
+                <span style="font-weight: 500;">${taskName}</span>
+                <span class="status-badge ${statusClass}">${event.status || 'Pending'}</span>
+                <span style="opacity: 0.6;">${timestamp}</span>
             `;
+
+            historyList.insertBefore(item, historyList.firstChild);
             
-            tasksList.insertBefore(taskItem, tasksList.firstChild);
-            
-            // Limite de 50 itens
-            while (tasksList.children.length > 50) {
-                tasksList.removeChild(tasksList.lastChild);
+            if (historyList.children.length > 50) {
+                historyList.removeChild(historyList.lastChild);
             }
         }
     </script>
