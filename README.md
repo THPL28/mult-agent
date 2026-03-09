@@ -528,11 +528,7 @@ python run_web_scraper.py
 
 Este projeto está licenciado sob a MIT License - veja [LICENSE](LICENSE) para detalhes.
 
----
-
-## 👥 Autores
-
-- **MultiAgent Platform Team**
+--
 
 ---
 
@@ -540,6 +536,6 @@ Este projeto está licenciado sob a MIT License - veja [LICENSE](LICENSE) para d
 
 **⭐ Se este projeto foi útil, considere dar uma estrela! ⭐**
 
-Made with ❤️ by MultiAgent Platform Team
+Made with by Tiago Looze 
 
 </div>
